@@ -10,7 +10,7 @@ mkdir -p logs
 module load miniconda
 conda activate fusion_model
 
-python scripts/eval.py --fusion-model mlp --vae-ckpt checkpoint/medvae3d_076000.pt \
-    --fusion-ckpt weights/fusion_mlp/mlp_fusion_final.pt \
-    --output-dir eval_results/fusion_mlp \
+python scripts/eval.py --fusion-model mlp \
+    --fusion-ckpt weights/fusion_mlp_za/mlp_fusion_final.pt \
+    --output-dir eval_results/fusion_mlp_zs \
     --test-csv data/triplets_eval.csv

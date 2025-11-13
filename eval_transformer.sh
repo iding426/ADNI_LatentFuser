@@ -10,7 +10,7 @@ mkdir -p logs
 module load miniconda
 conda activate fusion_model
 
-python scripts/eval.py --fusion-model transformer --vae-ckpt checkpoint/medvae3d_076000.pt \
-    --fusion-ckpt weights/fusion_transformer/transformer_fusion_final.pt \
-    --output-dir eval_results/fusion_transformer \
+python scripts/eval.py --fusion-model transformer \
+    --fusion-ckpt weights/fusion_transformer_zs/transformer_fusion_final.pt \
+    --output-dir eval_results/fusion_transformer_zs \
     --test-csv data/triplets_eval.csv

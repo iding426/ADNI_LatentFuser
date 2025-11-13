@@ -37,7 +37,7 @@ class FusionTransformer(nn.Module):
 
         y = self.transformer_encoder(x)  # (B, 2, latent_dim)
 
-        y = x.reshape(x.shape[0], -1)  # (B, latent_dim*2)
-        y = self.lin(x)  # (B, latent_dim)
+        y = y.reshape(y.shape[0], -1)  # (B, latent_dim*2)
+        y = self.lin(y)  # (B, latent_dim)
         return y  # Fused Latent - (B, latent_dim)
 

@@ -23,7 +23,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--fusion-model", type=str, default="mlp", choices=["mlp", "transformer"], help="Which fusion model to train")
-parser.add_argument("--vae-ckpt", type=str, required=True, help="Path to pre-trained VAE checkpoint")  
+parser.add_argument("--vae-ckpt", type=str, required=False, help="Path to pre-trained VAE checkpoint")  
 parser.add_argument("--checkpoint-dir", type=str, default="checkpoints", help="Directory to save fusion model checkpoints")
 args = parser.parse_args()
 
@@ -43,16 +43,19 @@ size = 128
 print(f"Loading pre-trained VAE from {args.vae_ckpt}...")
 vae3d = VAE3D(z_dim=latent_dim, size=size).to(device)
 
-# Load checkpoint - handle both direct state_dict and wrapped checkpoint formats
-checkpoint = torch.load(args.vae_ckpt, map_location=device, weights_only=False)
-if isinstance(checkpoint, dict) and 'model' in checkpoint:
-    # Checkpoint is wrapped (contains 'model', 'step', etc.)
-    vae3d.load_state_dict(checkpoint['model'])
-    print(f"VAE loaded from step {checkpoint.get('step', 'unknown')}")
+if args.vae_ckpt:
+    # Load checkpoint - handle both direct state_dict and wrapped checkpoint formats
+    vae_checkpoint = torch.load(args.vae_ckpt, map_location=device, weights_only=False)
+    if isinstance(vae_checkpoint, dict) and 'model' in vae_checkpoint:
+        # Checkpoint is wrapped (contains 'model', 'step', etc.)
+        vae3d.load_state_dict(vae_checkpoint['model'])
+        print(f"VAE loaded from checkpoint at step {vae_checkpoint.get('step', 'unknown')}")
+    else:
+        # Direct state_dict
+        vae3d.load_state_dict(vae_checkpoint)
+        print("VAE loaded from checkpoint")
 else:
-    # Direct state_dict
-    vae3d.load_state_dict(checkpoint)
-    print("VAE loaded")
+    print("Using pretrained MedVAE3D weights (no checkpoint provided)")
 
 vae3d.eval()  # Set to evaluation mode
 
@@ -73,7 +76,7 @@ optimizer = torch.optim.Adam(fusion_model.parameters(), lr)
 loss_fn = nn.MSELoss()
 
 # Dataset and DataLoader
-train_csv = "/path/to/triplets_train.csv"
+train_csv = "./data/triplets_train.csv"
 dataset = MRILongitudinalDataset(train_csv, size=size)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 

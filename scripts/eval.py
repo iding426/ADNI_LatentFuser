@@ -26,7 +26,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # argparse
 parser = argparse.ArgumentParser(description="Evaluate fusion model on test set")
 parser.add_argument("--fusion-model", type=str, default="mlp", choices=["mlp", "transformer"], help="Which fusion model to evaluate")
-parser.add_argument("--vae-ckpt", type=str, required=True, help="Path to pre-trained VAE checkpoint")  
+parser.add_argument("--vae-ckpt", type=str, required=False, help="Path to pre-trained VAE checkpoint")  
 parser.add_argument("--fusion-ckpt", type=str, required=True, help="Path to fusion model checkpoint")
 parser.add_argument("--test-csv", type=str, required=True, help="Path to test triplets CSV")
 parser.add_argument("--batch-size", type=int, default=4, help="Batch size for evaluation")
@@ -46,16 +46,19 @@ size = 128
 print("Loading VAE model...")
 vae3d = VAE3D(z_dim=latent_dim, size=size).to(device)
 
-# Load checkpoint - handle both direct state_dict and wrapped checkpoint formats
-vae_checkpoint = torch.load(args.vae_ckpt, map_location=device, weights_only=False)
-if isinstance(vae_checkpoint, dict) and 'model' in vae_checkpoint:
-    # Checkpoint is wrapped (contains 'model', 'step', etc.)
-    vae3d.load_state_dict(vae_checkpoint['model'])
-    print(f"VAE loaded from step {vae_checkpoint.get('step', 'unknown')}")
+if args.vae_ckpt:
+    # Load checkpoint - handle both direct state_dict and wrapped checkpoint formats
+    vae_checkpoint = torch.load(args.vae_ckpt, map_location=device, weights_only=False)
+    if isinstance(vae_checkpoint, dict) and 'model' in vae_checkpoint:
+        # Checkpoint is wrapped (contains 'model', 'step', etc.)
+        vae3d.load_state_dict(vae_checkpoint['model'])
+        print(f"VAE loaded from checkpoint at step {vae_checkpoint.get('step', 'unknown')}")
+    else:
+        # Direct state_dict
+        vae3d.load_state_dict(vae_checkpoint)
+        print("VAE loaded from checkpoint")
 else:
-    # Direct state_dict
-    vae3d.load_state_dict(vae_checkpoint)
-    print("VAE loaded")
+    print("Using pretrained MedVAE3D weights (no checkpoint provided)")
 
 vae3d.eval()
 

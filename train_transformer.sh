@@ -10,5 +10,5 @@ mkdir -p logs
 module load miniconda
 conda activate fusion_model
 
-python scripts/train.py --fusion-model transformer --vae-ckpt checkpoint/medvae3d_076000.pt \
-    --checkpoint-dir weights/fusion_transformer
+python scripts/train.py --fusion-model transformer \
+    --checkpoint-dir weights/fusion_transformer_zs
